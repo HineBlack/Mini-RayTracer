@@ -1,14 +1,13 @@
-#include "vec3.h"
+#include "general_defs.h"
 #include "color.h"
-#include "ray.h"
-#include "hittable.h"
+#include "hittable_list.h"
 #include "sphere.h"
+
 #include <iostream>
 
-color ray_color(const ray& r) {
-    sphere sp(point3(0,0,-1), 0.5);
+color ray_color(const ray& r, hittable& world) {
     hit_record rec;
-    if (sp.hit(r, 0, 100, rec)) {
+    if (world.hit(r, 0, infinity, rec)) {
         return rec.normal*0.5 + vec3(0.5, 0.5, 0.5);
     }
     vec3 unit_direction = unit_vector(r.direction());
@@ -21,6 +20,11 @@ int main() {
     const auto aspect_ratio = 16.0 / 9.0;
     const int image_width = 400;
     const int image_height = static_cast<int>(image_width / aspect_ratio);
+
+    // World
+    hittable_list world;
+    world.add(make_shared<sphere>(point3(0,0,-1), 0.5));
+    world.add(make_shared<sphere>(point3(0,-100.5,-1), 100));
 
     // Camera
     auto viewport_height = 2.0;
@@ -42,7 +46,7 @@ int main() {
             auto v = double(j) / (image_height-1);
             ray r(origin, lower_left_corner + u*horizontal + v*vertical - origin);
 
-            color pixel_color = ray_color(r);
+            color pixel_color = ray_color(r, world);
             write_color(std::cout, pixel_color);
         }
     }
