@@ -1,28 +1,18 @@
 #include "vec3.h"
 #include "color.h"
 #include "ray.h"
+#include "hittable.h"
+#include "sphere.h"
 #include <iostream>
 
-double hit_sphere(const point3& center, double radius, const ray& r) {
-    vec3 oc = r.origin() - center;
-    auto a = r.direction().length_squared();
-    auto half_b = dot(r.direction(), oc);
-    auto c = oc.length_squared() - radius*radius;
-    auto discriminant = half_b*half_b - a*c;
-    if (discriminant >= 0){
-        return (-half_b - sqrt(discriminant) ) / a;
-    }
-    return -1.0;
-}
-
 color ray_color(const ray& r) {
-    auto t = hit_sphere(point3(0,0,-1), 0.5, r);
-    if (t > 0.0) {
-        vec3 N = unit_vector( r.at(t) - vec3(0,0,-1) );
-        return N*0.5 + vec3(0.5, 0.5, 0.5);
+    sphere sp(point3(0,0,-1), 0.5);
+    hit_record rec;
+    if (sp.hit(r, 0, 100, rec)) {
+        return rec.normal*0.5 + vec3(0.5, 0.5, 0.5);
     }
     vec3 unit_direction = unit_vector(r.direction());
-    t = 0.5*(unit_direction.y() + 1.0);
+    auto t = 0.5*(unit_direction.y() + 1.0);
     return (1.0-t)*color(1.0, 1.0, 1.0) + t*color(0.5, 0.7, 1.0);
 }
 
